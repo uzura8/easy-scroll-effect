@@ -1,0 +1,17 @@
+*~
+*.bak
+.buildpath
+.project
+.settings
+*.tmproj
+build
+.idea
+nbproject/
+tags
+.DS_Store
+Thumbs.db
+desktop.ini
+
+package-lock.json
+/node_modules/*
+/dist/*/*.map

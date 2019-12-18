@@ -4,28 +4,45 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sample</title>
+<title>Easy Scroll Effect</title>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 <style>
 .scroll-effect {
-　opacity : 0;
-　transform : translate(0, 45px);
-　transition : all 300ms;
+  background: #FFF;
+  opacity : 0;
+  transform : translate(0, 100px);
+  transition : all 500ms;
 }
 .scroll-effect.fade-in {
-　opacity : 1;
-　transform : translate(0, 0);
+  opacity : 1;
+  transform : translate(0, 0);
 }
 </style>
 </head>
 <body>
 <div class="container">
-<h1 class="h2">Sample</h1>
+  <h1 class="featurette-heading h2">Easy Scroll Effect</h1>
+  <section class="js-scroll-effect scroll-effect mt-5">
+    <img class="img-fluid" src="https://demo.flockbird.uzura.work/assets/img/site/sample/01.jpg" alt="Sample image">
+  </section>
+  <p class="lead" style="height:400px">
+    Library description.
+  </p>
+  <section class="js-scroll-effect scroll-effect mt-5">
+    <img src="https://demo.flockbird.uzura.work/assets/img/site/sample/01.jpg" class="img-fluid" alt="Sample image">
+  </section>
+  <section class="js-scroll-effect scroll-effect mt-5" data-start-pos="0">
+    <img src="https://demo.flockbird.uzura.work/assets/img/site/sample/02.jpg" class="img-fluid" alt="Sample image">
+  </section>
+  <section class="js-scroll-effect scroll-effect mt-5">
+    <img src="https://demo.flockbird.uzura.work/assets/img/site/sample/03.jpg" class="img-fluid" alt="Sample image">
+  </section>
 </div>
 <script src="dist/js/EasyScrollEffect.js"></script>
 <script>
-  console.log(EasyScrollEffect);//!!!!!!
-  EasyScrollEffect.default.init();
+document.addEventListener('DOMContentLoaded', function() {
+  EasyScrollEffect.init();
+});
 </script>
 </body>
 </html>

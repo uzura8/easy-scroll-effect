@@ -1,28 +1,47 @@
 {
   "name": "easy-scroll-effect",
-  "version": "1.0.0",
-  "description": "Scroll Effect not depended on a specific JavaScript library.",
-  "main": "src/js/EasyScrollEffect.js",
+  "version": "1.0.7",
+  "description": "Easy Scroll Effect not depended on a specific JavaScript library.",
+  "main": "EasyScrollEffect.js",
   "scripts": {
-    "build": "webpack --mode=production",
-    "dev": "webpack --mode=development",
-    "watch": "webpack --mode=development --watch",
+    "build": "rollup -c",
+    "watch": "rollup -w",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uzura8/easy-scroll-effect.git"
+  },
+  "keywords": [
+    "scroll effect",
+    "JavaScript"
+  ],
   "author": "Shingo Yamada",
   "license": "MIT",
-  "dependencies": {
-    "@babel/polyfill": "^7.4.3"
+  "bugs": {
+    "url": "https://github.com/uzura8/easy-scroll-effect/issues"
   },
+  "homepage": "https://github.com/uzura8/easy-scroll-effect#readme",
   "devDependencies": {
-    "@babel/cli": "^7.4.3",
-    "@babel/core": "^7.4.3",
-    "@babel/preset-env": "^7.4.3",
-    "autoprefixer": "^9.5.0",
-    "babel-loader": "^8.0.5",
-    "eslint": "^5.16.0",
-    "precss": "^4.0.0",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.3.0"
+    "@babel/core": "^7.7.5",
+    "@babel/plugin-transform-runtime": "^7.7.6",
+    "@babel/preset-env": "^7.7.6",
+    "@rollup/plugin-buble": "^0.20.0",
+    "@rollup/plugin-json": "^4.0.0",
+    "@rollup/plugin-node-resolve": "^6.0.0",
+    "acorn": "^6.4.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015-rollup": "^3.0.0",
+    "commonjs": "0.0.1",
+    "core-js": "^3.5.0",
+    "eslint": "^6.7.2",
+    "rollup": "^1.27.13",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-watch": "^4.3.1"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.7.0"
   }
 }

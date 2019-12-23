@@ -1,25 +1,8 @@
 import '@babel/polyfill'
 
 const EasyScrollEffect = {
-  handleEvent: function(scopeElm, targetSelector, type, func, isRemove = false) {
-    var els = scopeElm.querySelectorAll(targetSelector)
-    if (els == null || els.length == 0) return
-    for (let i = 0, n = els.length; i < n; i++) {
-      console.log(els[i]);//!!!!!!
-      let listener = {
-        handleEvent: func,
-        scopeElm: scopeElm,
-        eventElm: els[i],
-        targetSelector: targetSelector
-      };
-      if (isRemove) {
-        els[i].removeEventListener(type, listener);
-      } else {
-        els[i].addEventListener(type, listener);
-      }
-    }
-  },
-
+  options: {},
+  scrollTimer: null,
   optionsDef: {
     selector: '.js-scroll-effect',
     timeout: 100,
@@ -27,32 +10,55 @@ const EasyScrollEffect = {
     startPosDef: 0,
   },
 
-  init: function(scopeElm = null, optionsSet = {}) {
+  handleEvent: function(scopeElm, eventElm = null, type, func, isRemove = false) {
     if (scopeElm == null) scopeElm = document
-    const options = Object.assign(this.optionsDef, optionsSet)
-    this.apply(scopeElm, options)
+    let listener = null
+
+    var els = scopeElm.querySelectorAll(this.options.selector)
+    if (els === null || !els.length) return;
+
+    for (let i = 0, n = els.length; i < n; i++) {
+      if (eventElm == null) eventElm = els[i]
+      listener = {
+        handleEvent: func,
+        scopeElm: scopeElm,
+        eventElm: els[i],
+        scrollTimer: this.scrollTimer,
+        options: this.options,
+      }
+      if (isRemove) {
+        eventElm.removeEventListener(type, listener)
+      } else {
+        eventElm.addEventListener(type, listener)
+      }
+    }
   },
 
-  apply: function(scopeElm, options) {
-    this.addClassByPosAll(scopeElm, options)
+  init: function(scopeElm = null, options = {}) {
+    this.options = Object.assign(this.optionsDef, options)
 
-    const timeout = options.timeout || 100
-    let timer = 0
-    window.addEventListener('scroll', () => {
-      if (timer) return
-      timer = setTimeout(() => {
-        this.addClassByPosAll(scopeElm, options)
-        timer = 0
-      }, timeout);
-    }, { passive: true })
+    this.addClassByPosAll(document, this.options)
+    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll)
   },
 
-  addClassByPosAll: function(scopeElm, options) {
-    const targetSelector = (options.selector != null) ?
-      options.selector : options.selector;
+  destroy: function(scopeElm = null, options = {}) {
+    this.options = Object.assign(this.optionsDef, options)
+    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll, true)
+  },
 
-    var els = scopeElm.querySelectorAll(targetSelector)
+  execForScroll: function() {
+    if (this.scrollTimer) return
+    this.scrollTimer = setTimeout(() => {
+      EasyScrollEffect.addClassByPos(this.eventElm, this.options)
+      this.scrollTimer = 0
+    }, this.options.timeout)
+  },
+
+  addClassByPosAll: function(scopeElm = null, options) {
+    if (scopeElm == null) scopeElm = document
+    let els = scopeElm.querySelectorAll(options.selector)
     if (els == null || els.length == 0) return
+
     for (let i = 0, n = els.length; i < n; i++) {
       this.addClassByPos(els[i], options)
     }
@@ -68,10 +74,10 @@ const EasyScrollEffect = {
     const scrollY = window.pageYOffset || document.documentElement.scrollTop
     const rect = elm.getBoundingClientRect()
     const posY = rect.top +  scrollY
-    if (scrollY > posY - windowHeight + startPos){
-      elm.classList.add(type);
-    }
+    if (scrollY < posY - windowHeight + startPos) return
+
+    elm.classList.add(type)
   },
 }
 
-export default EasyScrollEffect;
+export default EasyScrollEffect

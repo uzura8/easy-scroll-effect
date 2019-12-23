@@ -587,61 +587,68 @@
 	});
 
 	var EasyScrollEffect = {
-	  handleEvent: function handleEvent(scopeElm, targetSelector, type, func) {
-	    var isRemove = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
-	    var els = scopeElm.querySelectorAll(targetSelector);
-	    if (els == null || els.length == 0) return;
-
-	    for (var i = 0, n = els.length; i < n; i++) {
-	      console.log(els[i]); //!!!!!!
-
-	      var listener = {
-	        handleEvent: func,
-	        scopeElm: scopeElm,
-	        eventElm: els[i],
-	        targetSelector: targetSelector
-	      };
-
-	      if (isRemove) {
-	        els[i].removeEventListener(type, listener);
-	      } else {
-	        els[i].addEventListener(type, listener);
-	      }
-	    }
-	  },
+	  options: {},
+	  scrollTimer: null,
 	  optionsDef: {
 	    selector: '.js-scroll-effect',
 	    timeout: 100,
 	    typeDef: 'fade-in',
 	    startPosDef: 0
 	  },
+	  handleEvent: function handleEvent(scopeElm) {
+	    var eventElm = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+	    var type = arguments.length > 2 ? arguments[2] : undefined;
+	    var func = arguments.length > 3 ? arguments[3] : undefined;
+	    var isRemove = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+	    if (scopeElm == null) scopeElm = document;
+	    var listener = null;
+	    var els = scopeElm.querySelectorAll(this.options.selector);
+	    if (els === null || !els.length) return;
+
+	    for (var i = 0, n = els.length; i < n; i++) {
+	      if (eventElm == null) eventElm = els[i];
+	      listener = {
+	        handleEvent: func,
+	        scopeElm: scopeElm,
+	        eventElm: els[i],
+	        scrollTimer: this.scrollTimer,
+	        options: this.options
+	      };
+
+	      if (isRemove) {
+	        eventElm.removeEventListener(type, listener);
+	      } else {
+	        eventElm.addEventListener(type, listener);
+	      }
+	    }
+	  },
 	  init: function init() {
 	    var scopeElm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-	    var optionsSet = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-	    if (scopeElm == null) scopeElm = document;
-	    var options = Object.assign(this.optionsDef, optionsSet);
-	    this.apply(scopeElm, options);
+	    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	    this.options = Object.assign(this.optionsDef, options);
+	    this.addClassByPosAll(document, this.options);
+	    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll);
 	  },
-	  apply: function apply(scopeElm, options) {
+	  destroy: function destroy() {
+	    var scopeElm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+	    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	    this.options = Object.assign(this.optionsDef, options);
+	    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll, true);
+	  },
+	  execForScroll: function execForScroll() {
 	    var _this = this;
 
-	    this.addClassByPosAll(scopeElm, options);
-	    var timeout = options.timeout || 100;
-	    var timer = 0;
-	    window.addEventListener('scroll', function () {
-	      if (timer) return;
-	      timer = setTimeout(function () {
-	        _this.addClassByPosAll(scopeElm, options);
-
-	        timer = 0;
-	      }, timeout);
-	    }, {
-	      passive: true
-	    });
+	    if (this.scrollTimer) return;
+	    this.scrollTimer = setTimeout(function () {
+	      EasyScrollEffect.addClassByPos(_this.eventElm, _this.options);
+	      _this.scrollTimer = 0;
+	    }, this.options.timeout);
 	  },
-	  addClassByPosAll: function addClassByPosAll(scopeElm, options) {
-	    var targetSelector = options.selector != null ? options.selector : options.selector;
-	    var els = scopeElm.querySelectorAll(targetSelector);
+	  addClassByPosAll: function addClassByPosAll() {
+	    var scopeElm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+	    var options = arguments.length > 1 ? arguments[1] : undefined;
+	    if (scopeElm == null) scopeElm = document;
+	    var els = scopeElm.querySelectorAll(options.selector);
 	    if (els == null || els.length == 0) return;
 
 	    for (var i = 0, n = els.length; i < n; i++) {
@@ -656,10 +663,8 @@
 	    var scrollY = window.pageYOffset || document.documentElement.scrollTop;
 	    var rect = elm.getBoundingClientRect();
 	    var posY = rect.top + scrollY;
-
-	    if (scrollY > posY - windowHeight + startPos) {
-	      elm.classList.add(type);
-	    }
+	    if (scrollY < posY - windowHeight + startPos) return;
+	    elm.classList.add(type);
 	  }
 	};
 

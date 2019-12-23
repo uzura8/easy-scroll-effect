@@ -5,8 +5,8 @@ const EasyScrollEffect = {
   scrollTimer: null,
   optionsDef: {
     selector: '.js-scroll-effect',
-    timeout: 100,
-    typeDef: 'fade-in',
+    timeout: 1000/60,
+    addedClass: 'fade-in',
     startPosDef: 0,
   },
 
@@ -65,10 +65,12 @@ const EasyScrollEffect = {
   },
 
   addClassByPos: function(elm, options) {
-    const type = elm.dataset.type != null ? elm.dataset.type : options.typeDef
+    const addedClass = elm.dataset.addedClass != null ?
+      elm.dataset.addedClass : options.addedClass
     const startPos = elm.dataset.startPos != null ?
       parseInt(elm.dataset.startPos) : options.startPosDef
-    if (elm.classList.contains(type)) return
+
+    if (elm.classList.contains(addedClass)) return
 
     const windowHeight = window.innerHeight
     const scrollY = window.pageYOffset || document.documentElement.scrollTop
@@ -76,7 +78,7 @@ const EasyScrollEffect = {
     const posY = rect.top +  scrollY
     if (scrollY < posY - windowHeight + startPos) return
 
-    elm.classList.add(type)
+    elm.classList.add(addedClass)
   },
 }
 

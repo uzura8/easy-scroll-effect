@@ -591,8 +591,8 @@
 	  scrollTimer: null,
 	  optionsDef: {
 	    selector: '.js-scroll-effect',
-	    timeout: 100,
-	    typeDef: 'fade-in',
+	    timeout: 1000 / 60,
+	    addedClass: 'fade-in',
 	    startPosDef: 0
 	  },
 	  handleEvent: function handleEvent(scopeElm) {
@@ -656,15 +656,15 @@
 	    }
 	  },
 	  addClassByPos: function addClassByPos(elm, options) {
-	    var type = elm.dataset.type != null ? elm.dataset.type : options.typeDef;
+	    var addedClass = elm.dataset.addedClass != null ? elm.dataset.addedClass : options.addedClass;
 	    var startPos = elm.dataset.startPos != null ? parseInt(elm.dataset.startPos) : options.startPosDef;
-	    if (elm.classList.contains(type)) return;
+	    if (elm.classList.contains(addedClass)) return;
 	    var windowHeight = window.innerHeight;
 	    var scrollY = window.pageYOffset || document.documentElement.scrollTop;
 	    var rect = elm.getBoundingClientRect();
 	    var posY = rect.top + scrollY;
 	    if (scrollY < posY - windowHeight + startPos) return;
-	    elm.classList.add(type);
+	    elm.classList.add(addedClass);
 	  }
 	};
 

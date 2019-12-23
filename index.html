@@ -6,43 +6,242 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Easy Scroll Effect</title>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-<style id="effect-style-def">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark-reasonable.min.css">
+<style>
+/* Style for demo page */
+.main { padding-top: 4rem; }
+.u-mt20 { margin-top: 20px !important; }
+.u-mt30 { margin-top: 30px !important; }
+.u-mt50 { margin-top: 50px !important; }
+</style>
+
+<style id="css-sample-fade-in">
+/* Sample Style for Fade In */
 .scroll-effect {
   background: #FFF;
   opacity : 0;
   transform : translate(0, 100px);
-  transition : all 500ms;
+  transition : all 700ms;
 }
 .scroll-effect.fade-in {
   opacity : 1;
   transform : translate(0, 0);
 }
 </style>
+
+<style id="css-sample-rotate-in">
+/* Sample Style for Rotate In */
+.scroll-effect-rotate {
+  background: #FFF;
+  opacity : 0;
+  transform: translateY(4em) rotateZ(-10deg);
+  transition: transform 1.5s .25s cubic-bezier(0,1,.3,1),
+              opacity .5s .25s ease-out;
+  will-change: transform, opacity;
+}
+.scroll-effect-rotate.fade-in {
+  opacity : 1;
+  transform: rotateZ(0);
+}
+</style>
 </head>
 <body>
-<div class="container">
-  <h1 class="featurette-heading h2">Easy Scroll Effect</h1>
-  <section class="js-scroll-effect scroll-effect mt-5">
-    <img class="img-fluid" src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/01.jpg" alt="Sample image">
-  </section>
-  <p class="lead" style="height:800px">
-    Library description.
-  </p>
-  <section class="js-scroll-effect scroll-effect mt-5">
-    <img src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/02.jpg" class="img-fluid" alt="Sample image">
-  </section>
-  <section class="js-scroll-effect scroll-effect mt-5" data-start-pos="0">
-    <img src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/03.jpg" class="img-fluid" alt="Sample image">
-  </section>
-  <section class="js-scroll-effect scroll-effect mt-5">
-    <img src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/04.jpg" class="img-fluid" alt="Sample image">
-  </section>
+<main class="main" role="main">
+  <div class="container">
+    <h1 class="featurette-heading">Easy Scroll Effect <small>Getting Started and Demos</small></h1>
+    <p class="lead">
+      EasyScrollEffect - is easy and simple library for scrolling effect.<br>
+      It dosn't depend on a specific library.<br>
+      This library only add class for effect.<br>
+      You have to define style for each effect.
+    </p>
+
+    <section class="u-mt30">
+      <h2>Demos</h2>
+
+      <section class="u-mt30">
+        <h3>Fade In</h3>
+        <section id="demo-fade-in" class="u-mt20">
+<div class="js-scroll-effect scroll-effect">
+  <img class="img-fluid" src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/01.jpg" alt="Sample image">
 </div>
+        </section>
+      </section>
+      <section>
+        <section>
+          <h5 class="u-mt20">HTML</h5>
+          <pre id="code-fade-in"><code class="js-code html" data-target="demo-fade-in"></code></pre>
+        </section>
+        <section>
+          <h5 class="u-mt20">CSS</h5>
+          <pre id="code-fade-in"><code class="js-code css" data-target="css-sample-fade-in"></code></pre>
+        </section>
+      </section>
+      <hr>
+
+      <section class="u-mt30">
+        <h3>Rotate In</h3>
+        <section id="demo-rotate-in" class="u-mt20">
+<div class="js-scroll-effect scroll-effect-rotate">
+  <img class="img-fluid" src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/02.jpg" alt="Sample image">
+</div>
+        </section>
+      </section>
+      <section>
+        <section>
+          <h5 class="u-mt20">HTML</h5>
+          <pre id="code-rotate-in"><code class="js-code html" data-target="demo-rotate-in"></code></pre>
+        </section>
+        <section>
+          <h5 class="u-mt20">CSS</h5>
+          <pre id="code-rotate-in"><code class="js-code css" data-target="css-sample-rotate-in"></code></pre>
+        </section>
+      </section>
+      <hr>
+
+      <section class="js-scroll-effect scroll-effect mt-5">
+        <h5>Sample</h5>
+        <img src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/03.jpg" class="img-fluid" alt="Sample image">
+      </section>
+      <section class="js-scroll-effect scroll-effect mt-5" data-start-pos="300">
+        <h5>Sample (Delayed)</h5>
+        <img src="https://raw.githubusercontent.com/uzura8/flockbird/v1.6/master/public/assets/img/site/sample/04.jpg" class="img-fluid" alt="Sample image">
+        <p>
+          Set attribute <code>data-start-pos="300"</code>.
+        </p>
+      </section>
+    </section>
+
+    <section class="u-mt50">
+      <h2>Getting statrted</h2>
+      <section class="js-scroll-effect scroll-effect">
+        <h3 class="u-mt30">1. Download and install</h3>
+        <section>
+          <p>First of all we need to download required files.</p>
+          <ul>
+            <li>We can download them from <a href="https://github.com/uzura8/easy-scroll-effect">GitHub repository</a></li>
+            <li>Or we can install them via npm in terminal.</li>
+          </ul>
+          <code>$ npm install easy-scroll-effect</code>
+          <p>And use files in the <code>dist/</code> folder.</p>
+        </section>
+      </section>
+
+      <section class="js-scroll-effect scroll-effect">
+        <h3 class="u-mt30">2. Include Files To Website</h3>
+        <section>
+          <p>
+            After that we need to include JS files to our website. In your html file.<br>
+            Bundled css is just sample. You need to define css by yourself.
+          </p>
+          <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  ...
+  &lt;link rel="stylesheet" href="path/to/yourStyle.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  ...
+  &lt;script src="path/to/EasyScrollEffect.js"&gt;&lt;/script&gt;
+  &lt;script&gt;
+    document.addEventListener('DOMContentLoaded', function() {
+      EasyScrollEffect.init()
+    })
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </section>
+      </section>
+
+      <section class="js-scroll-effect scroll-effect">
+        <h3 class="u-mt30">3. Define Styles for your effect</h3>
+        <section>
+          <p>
+            This library has no css.<br>
+            You need to define css by yourself.<br>
+            Minimum css is below.
+          </p>
+        </section>
+        <section>
+          <h5 class="u-mt20">Smple CSS</h5>
+          <pre id="code-sample-style"><code class="js-code css" data-target="css-sample-fade-in"></code></pre>
+        </section>
+      </section>
+
+      <section class="js-scroll-effect scroll-effect">
+        <h3 class="u-mt30">4. Add class to target elements</h3>
+        <section>
+          <p>Reffer to below documents</p>
+        </section>
+      </section>
+
+    </section>
+
+    <section class="u-mt50">
+      <h2>Document</h2>
+      <section>
+        <h3 class="u-mt30">HTML</h3>
+        <section>
+          <h4 class="u-mt20">Target</h4>
+          <ul>
+            <li>Set class <code>js-scroll-effect</code> to target element.</li>
+            <li>class <code>fade-in</code> is added to target element at shown in window after scroll.</li>
+            <li class="text-danger">You have to define styles for them.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h5 class="u-mt30">Options</h5>
+          <div class="table-responsive">
+            <table class="table">
+              <tr>
+                <th>Parameter</th>
+                <th>Example</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+              <tr>
+                <td>start-pos</td>
+                <td>data-start-pos="200"</td>
+                <td>0</td>
+                <td>
+                  <p>
+                    If set this, timing to add class <code>fade-in</code> is delayed until scroll more this height.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </section>
+
+      </section>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+<!-- For display sample -->
+<script>
+hljs.initHighlightingOnLoad();
+document.addEventListener('DOMContentLoaded', function() {
+  var $code = Array.prototype.slice.call(document.querySelectorAll('.js-code'), 0);
+  if ($code.length > 0) {
+    $code.forEach(function ($el) {
+      if ($el.dataset.target == null)  return;
+      var targetId = $el.dataset.target;
+      var $targetEl = document.getElementById(targetId);
+      if ($targetEl === undefined || $targetEl === null) return;
+      $el.innerText = $targetEl.innerHTML.replace(/\s*style=".+"/g, '').trim();
+    });
+  }
+});
+</script>
+
 <script src="dist/js/EasyScrollEffect.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  EasyScrollEffect.init();
-});
+  EasyScrollEffect.init()
+})
 </script>
 </body>
 </html>

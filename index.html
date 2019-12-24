@@ -23,7 +23,7 @@
   transform : translate(0, 100px);
   transition : all 700ms;
 }
-.scroll-effect.fade-in {
+.scroll-effect.is-active {
   opacity : 1;
   transform : translate(0, 0);
 }
@@ -39,7 +39,7 @@
               opacity .5s .25s ease-out;
   will-change: transform, opacity;
 }
-.scroll-effect-rotate.fade-in {
+.scroll-effect-rotate.is-active {
   opacity : 1;
   transform: rotateZ(0);
 }
@@ -185,7 +185,7 @@
           <h4 class="u-mt20">Target</h4>
           <ul>
             <li>Set class <code>js-scroll-effect</code> to target element.</li>
-            <li>class <code>fade-in</code> is added to target element at shown in window after scroll.</li>
+            <li>class <code>is-active</code> is added to target element at shown in window after scroll.</li>
             <li class="text-danger">You have to define styles for them.</li>
           </ul>
         </section>
@@ -206,7 +206,7 @@
                 <td>0</td>
                 <td>
                   <p>
-                    If set this, timing to add class <code>fade-in</code> is delayed until scroll more this height.
+                    If set this, timing to add class <code>is-active</code> is delayed until scroll more this height.
                   </p>
                 </td>
               </tr>

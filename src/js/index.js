@@ -6,7 +6,7 @@ const EasyScrollEffect = {
   optionsDef: {
     selector: '.js-scroll-effect',
     timeout: 1000/60,
-    addedClass: 'fade-in',
+    addedClass: 'is-active',
     startPosDef: 0,
   },
 

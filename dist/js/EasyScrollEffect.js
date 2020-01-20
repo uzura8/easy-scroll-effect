@@ -524,16 +524,281 @@
 	  }
 	};
 
-	// `Object.keys` method
-	// https://tc39.github.io/ecma262/#sec-object.keys
-	var objectKeys = Object.keys || function keys(O) {
-	  return objectKeysInternal(O, enumBugKeys);
+	// `IsArray` abstract operation
+	// https://tc39.github.io/ecma262/#sec-isarray
+	var isArray = Array.isArray || function isArray(arg) {
+	  return classofRaw(arg) == 'Array';
 	};
 
 	// `ToObject` abstract operation
 	// https://tc39.github.io/ecma262/#sec-toobject
 	var toObject = function (argument) {
 	  return Object(requireObjectCoercible(argument));
+	};
+
+	var createProperty = function (object, key, value) {
+	  var propertyKey = toPrimitive(key);
+	  if (propertyKey in object) objectDefineProperty.f(object, propertyKey, createPropertyDescriptor(0, value));
+	  else object[propertyKey] = value;
+	};
+
+	var nativeSymbol = !!Object.getOwnPropertySymbols && !fails(function () {
+	  // Chrome 38 Symbol has incorrect toString conversion
+	  // eslint-disable-next-line no-undef
+	  return !String(Symbol());
+	});
+
+	var useSymbolAsUid = nativeSymbol
+	  // eslint-disable-next-line no-undef
+	  && !Symbol.sham
+	  // eslint-disable-next-line no-undef
+	  && typeof Symbol() == 'symbol';
+
+	var WellKnownSymbolsStore = shared('wks');
+	var Symbol$1 = global_1.Symbol;
+	var createWellKnownSymbol = useSymbolAsUid ? Symbol$1 : uid;
+
+	var wellKnownSymbol = function (name) {
+	  if (!has(WellKnownSymbolsStore, name)) {
+	    if (nativeSymbol && has(Symbol$1, name)) WellKnownSymbolsStore[name] = Symbol$1[name];
+	    else WellKnownSymbolsStore[name] = createWellKnownSymbol('Symbol.' + name);
+	  } return WellKnownSymbolsStore[name];
+	};
+
+	var SPECIES = wellKnownSymbol('species');
+
+	// `ArraySpeciesCreate` abstract operation
+	// https://tc39.github.io/ecma262/#sec-arrayspeciescreate
+	var arraySpeciesCreate = function (originalArray, length) {
+	  var C;
+	  if (isArray(originalArray)) {
+	    C = originalArray.constructor;
+	    // cross-realm fallback
+	    if (typeof C == 'function' && (C === Array || isArray(C.prototype))) C = undefined;
+	    else if (isObject(C)) {
+	      C = C[SPECIES];
+	      if (C === null) C = undefined;
+	    }
+	  } return new (C === undefined ? Array : C)(length === 0 ? 0 : length);
+	};
+
+	var userAgent = getBuiltIn('navigator', 'userAgent') || '';
+
+	var process = global_1.process;
+	var versions = process && process.versions;
+	var v8 = versions && versions.v8;
+	var match, version;
+
+	if (v8) {
+	  match = v8.split('.');
+	  version = match[0] + match[1];
+	} else if (userAgent) {
+	  match = userAgent.match(/Edge\/(\d+)/);
+	  if (!match || match[1] >= 74) {
+	    match = userAgent.match(/Chrome\/(\d+)/);
+	    if (match) version = match[1];
+	  }
+	}
+
+	var v8Version = version && +version;
+
+	var SPECIES$1 = wellKnownSymbol('species');
+
+	var arrayMethodHasSpeciesSupport = function (METHOD_NAME) {
+	  // We can't use this feature detection in V8 since it causes
+	  // deoptimization and serious performance degradation
+	  // https://github.com/zloirock/core-js/issues/677
+	  return v8Version >= 51 || !fails(function () {
+	    var array = [];
+	    var constructor = array.constructor = {};
+	    constructor[SPECIES$1] = function () {
+	      return { foo: 1 };
+	    };
+	    return array[METHOD_NAME](Boolean).foo !== 1;
+	  });
+	};
+
+	var IS_CONCAT_SPREADABLE = wellKnownSymbol('isConcatSpreadable');
+	var MAX_SAFE_INTEGER = 0x1FFFFFFFFFFFFF;
+	var MAXIMUM_ALLOWED_INDEX_EXCEEDED = 'Maximum allowed index exceeded';
+
+	// We can't use this feature detection in V8 since it causes
+	// deoptimization and serious performance degradation
+	// https://github.com/zloirock/core-js/issues/679
+	var IS_CONCAT_SPREADABLE_SUPPORT = v8Version >= 51 || !fails(function () {
+	  var array = [];
+	  array[IS_CONCAT_SPREADABLE] = false;
+	  return array.concat()[0] !== array;
+	});
+
+	var SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('concat');
+
+	var isConcatSpreadable = function (O) {
+	  if (!isObject(O)) return false;
+	  var spreadable = O[IS_CONCAT_SPREADABLE];
+	  return spreadable !== undefined ? !!spreadable : isArray(O);
+	};
+
+	var FORCED = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
+
+	// `Array.prototype.concat` method
+	// https://tc39.github.io/ecma262/#sec-array.prototype.concat
+	// with adding support of @@isConcatSpreadable and @@species
+	_export({ target: 'Array', proto: true, forced: FORCED }, {
+	  concat: function concat(arg) { // eslint-disable-line no-unused-vars
+	    var O = toObject(this);
+	    var A = arraySpeciesCreate(O, 0);
+	    var n = 0;
+	    var i, k, length, len, E;
+	    for (i = -1, length = arguments.length; i < length; i++) {
+	      E = i === -1 ? O : arguments[i];
+	      if (isConcatSpreadable(E)) {
+	        len = toLength(E.length);
+	        if (n + len > MAX_SAFE_INTEGER) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
+	        for (k = 0; k < len; k++, n++) if (k in E) createProperty(A, n, E[k]);
+	      } else {
+	        if (n >= MAX_SAFE_INTEGER) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
+	        createProperty(A, n++, E);
+	      }
+	    }
+	    A.length = n;
+	    return A;
+	  }
+	});
+
+	var sloppyArrayMethod = function (METHOD_NAME, argument) {
+	  var method = [][METHOD_NAME];
+	  return !method || !fails(function () {
+	    // eslint-disable-next-line no-useless-call,no-throw-literal
+	    method.call(null, argument || function () { throw 1; }, 1);
+	  });
+	};
+
+	var nativeJoin = [].join;
+
+	var ES3_STRINGS = indexedObject != Object;
+	var SLOPPY_METHOD = sloppyArrayMethod('join', ',');
+
+	// `Array.prototype.join` method
+	// https://tc39.github.io/ecma262/#sec-array.prototype.join
+	_export({ target: 'Array', proto: true, forced: ES3_STRINGS || SLOPPY_METHOD }, {
+	  join: function join(separator) {
+	    return nativeJoin.call(toIndexedObject(this), separator === undefined ? ',' : separator);
+	  }
+	});
+
+	var aFunction$1 = function (it) {
+	  if (typeof it != 'function') {
+	    throw TypeError(String(it) + ' is not a function');
+	  } return it;
+	};
+
+	// optional / simple context binding
+	var bindContext = function (fn, that, length) {
+	  aFunction$1(fn);
+	  if (that === undefined) return fn;
+	  switch (length) {
+	    case 0: return function () {
+	      return fn.call(that);
+	    };
+	    case 1: return function (a) {
+	      return fn.call(that, a);
+	    };
+	    case 2: return function (a, b) {
+	      return fn.call(that, a, b);
+	    };
+	    case 3: return function (a, b, c) {
+	      return fn.call(that, a, b, c);
+	    };
+	  }
+	  return function (/* ...args */) {
+	    return fn.apply(that, arguments);
+	  };
+	};
+
+	var push = [].push;
+
+	// `Array.prototype.{ forEach, map, filter, some, every, find, findIndex }` methods implementation
+	var createMethod$1 = function (TYPE) {
+	  var IS_MAP = TYPE == 1;
+	  var IS_FILTER = TYPE == 2;
+	  var IS_SOME = TYPE == 3;
+	  var IS_EVERY = TYPE == 4;
+	  var IS_FIND_INDEX = TYPE == 6;
+	  var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
+	  return function ($this, callbackfn, that, specificCreate) {
+	    var O = toObject($this);
+	    var self = indexedObject(O);
+	    var boundFunction = bindContext(callbackfn, that, 3);
+	    var length = toLength(self.length);
+	    var index = 0;
+	    var create = specificCreate || arraySpeciesCreate;
+	    var target = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined;
+	    var value, result;
+	    for (;length > index; index++) if (NO_HOLES || index in self) {
+	      value = self[index];
+	      result = boundFunction(value, index, O);
+	      if (TYPE) {
+	        if (IS_MAP) target[index] = result; // map
+	        else if (result) switch (TYPE) {
+	          case 3: return true;              // some
+	          case 5: return value;             // find
+	          case 6: return index;             // findIndex
+	          case 2: push.call(target, value); // filter
+	        } else if (IS_EVERY) return false;  // every
+	      }
+	    }
+	    return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : target;
+	  };
+	};
+
+	var arrayIteration = {
+	  // `Array.prototype.forEach` method
+	  // https://tc39.github.io/ecma262/#sec-array.prototype.foreach
+	  forEach: createMethod$1(0),
+	  // `Array.prototype.map` method
+	  // https://tc39.github.io/ecma262/#sec-array.prototype.map
+	  map: createMethod$1(1),
+	  // `Array.prototype.filter` method
+	  // https://tc39.github.io/ecma262/#sec-array.prototype.filter
+	  filter: createMethod$1(2),
+	  // `Array.prototype.some` method
+	  // https://tc39.github.io/ecma262/#sec-array.prototype.some
+	  some: createMethod$1(3),
+	  // `Array.prototype.every` method
+	  // https://tc39.github.io/ecma262/#sec-array.prototype.every
+	  every: createMethod$1(4),
+	  // `Array.prototype.find` method
+	  // https://tc39.github.io/ecma262/#sec-array.prototype.find
+	  find: createMethod$1(5),
+	  // `Array.prototype.findIndex` method
+	  // https://tc39.github.io/ecma262/#sec-array.prototype.findIndex
+	  findIndex: createMethod$1(6)
+	};
+
+	var $map = arrayIteration.map;
+
+
+
+	var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('map');
+	// FF49- issue
+	var USES_TO_LENGTH = HAS_SPECIES_SUPPORT && !fails(function () {
+	  [].map.call({ length: -1, 0: 1 }, function (it) { throw it; });
+	});
+
+	// `Array.prototype.map` method
+	// https://tc39.github.io/ecma262/#sec-array.prototype.map
+	// with adding support of @@species
+	_export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT || !USES_TO_LENGTH }, {
+	  map: function map(callbackfn /* , thisArg */) {
+	    return $map(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+	  }
+	});
+
+	// `Object.keys` method
+	// https://tc39.github.io/ecma262/#sec-object.keys
+	var objectKeys = Object.keys || function keys(O) {
+	  return objectKeysInternal(O, enumBugKeys);
 	};
 
 	var nativeAssign = Object.assign;
@@ -586,6 +851,16 @@
 	  assign: objectAssign
 	});
 
+	var FAILS_ON_PRIMITIVES = fails(function () { objectKeys(1); });
+
+	// `Object.keys` method
+	// https://tc39.github.io/ecma262/#sec-object.keys
+	_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES }, {
+	  keys: function keys(it) {
+	    return objectKeys(toObject(it));
+	  }
+	});
+
 	var EasyScrollEffect = {
 	  options: {},
 	  scrollTimer: null,
@@ -593,7 +868,15 @@
 	    selector: '.js-scroll-effect',
 	    timeout: 1000 / 60,
 	    addedClass: 'is-active',
-	    startPosDef: 0
+	    startPosDef: 0,
+	    isDebug: false
+	  },
+	  debugInfo: {
+	    delayTimeToSetPos: 2000,
+	    baseElm: null,
+	    scrollInfoElm: null,
+	    triggerInfoElm: null,
+	    eachInfoElms: []
 	  },
 	  handleEvent: function handleEvent(scopeElm) {
 	    var eventElm = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
@@ -650,9 +933,14 @@
 	    if (scopeElm == null) scopeElm = document;
 	    var els = scopeElm.querySelectorAll(options.selector);
 	    if (els == null || els.length == 0) return;
+	    if (options.isDebug) this.addDebugBlock();
 
 	    for (var i = 0, n = els.length; i < n; i++) {
 	      this.addClassByPos(els[i], options);
+
+	      if (options.isDebug) {
+	        this.addEachDebugInfo(i, els[i], options);
+	      }
 	    }
 	  },
 	  addClassByPos: function addClassByPos(elm, options) {
@@ -660,11 +948,94 @@
 	    var startPos = elm.dataset.startPos != null ? parseInt(elm.dataset.startPos) : options.startPosDef;
 	    if (elm.classList.contains(addedClass)) return;
 	    var windowHeight = window.innerHeight;
-	    var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+	    var scrollY = this.getScrollY();
 	    var rect = elm.getBoundingClientRect();
 	    var posY = rect.top + scrollY;
+	    if (options.isDebug) this.setScrollValueForDebug(scrollY);
 	    if (scrollY < posY - windowHeight + startPos) return;
 	    elm.classList.add(addedClass);
+	  },
+	  getScrollY: function getScrollY() {
+	    return window.scrollY || window.pageYOffset;
+	  },
+	  // For debug
+	  addDebugBlock: function addDebugBlock() {
+	    var bodyElms = document.getElementsByTagName('body');
+	    if (bodyElms.length < 1) return; // parent
+
+	    this.debugInfo.baseElm = document.createElement('div');
+	    this.debugInfo.baseElm.setAttribute('id', 'eseInfoBlock');
+	    var styleObj = {
+	      position: 'fixed',
+	      bottom: '5px',
+	      right: '5px',
+	      'z-index': '90000',
+	      width: '210px',
+	      height: '200px',
+	      border: 'solid 1px #a0a0a0',
+	      background: '#f7f7f7',
+	      padding: '5px',
+	      overflow: 'scroll'
+	    };
+	    var styleItems = [];
+	    Object.keys(styleObj).map(function (key) {
+	      styleItems.push("".concat(key, ":").concat(styleObj[key]));
+	    });
+	    this.debugInfo.baseElm.setAttribute('style', styleItems.join(';')); // scrollInfo
+
+	    this.debugInfo.scrollInfoElm = this.createDebugElm('scroll', 0); // windowHeightInfo
+
+	    var value = window.innerHeight;
+	    this.createDebugElm('windowHeight', value); // triggerHeightInfo
+
+	    this.debugInfo.triggerInfoElm = this.createDebugElm('triggerHeight', 0);
+	    bodyElms[0].appendChild(this.debugInfo.baseElm);
+	  },
+	  addEachDebugInfo: function addEachDebugInfo(index, elm, options) {
+	    var _this2 = this;
+
+	    if (this.debugInfo.eachInfoElms.indexOf(index) != -1) return;
+	    var startPos = elm.dataset.startPos != null ? parseInt(elm.dataset.startPos) : options.startPosDef;
+	    setTimeout(function () {
+	      var rect = elm.getBoundingClientRect();
+
+	      var scrollY = _this2.getScrollY();
+
+	      var value = rect.top + scrollY + startPos;
+	      var viewValue = Math.round(value * 10) / 10; // scrollInfo
+
+	      var eachDiv = document.createElement('div');
+	      var labelSpan = document.createElement('span');
+	      labelSpan.textContent = "".concat(index, " pos: ");
+	      eachDiv.appendChild(labelSpan);
+	      var valueSpan = document.createElement('span');
+	      valueSpan.textContent = "".concat(viewValue, " (add: ").concat(startPos, ")");
+	      eachDiv.appendChild(valueSpan);
+
+	      _this2.debugInfo.baseElm.appendChild(eachDiv);
+
+	      _this2.debugInfo.eachInfoElms[index] = eachDiv;
+	    }, this.debugInfo.delayTimeToSetPos);
+	  },
+	  setScrollValueForDebug: function setScrollValueForDebug(scrollY) {
+	    if (this.debugInfo.scrollInfoElm != null) {
+	      this.debugInfo.scrollInfoElm.textContent = scrollY;
+	    }
+
+	    if (this.debugInfo.triggerInfoElm != null) {
+	      this.debugInfo.triggerInfoElm.textContent = scrollY + window.innerHeight;
+	    }
+	  },
+	  createDebugElm: function createDebugElm(label, value) {
+	    var div = document.createElement('div');
+	    var labelSpan = document.createElement('span');
+	    labelSpan.textContent = "".concat(label, ": ");
+	    div.appendChild(labelSpan);
+	    var valueSpan = document.createElement('span');
+	    valueSpan.textContent = value;
+	    div.appendChild(valueSpan);
+	    this.debugInfo.baseElm.appendChild(div);
+	    return valueSpan;
 	  }
 	};
 

@@ -911,12 +911,14 @@
 	    this.options = Object.assign(this.optionsDef, options);
 	    this.addClassByPosAll(document, this.options);
 	    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll);
+	    this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll);
 	  },
 	  destroy: function destroy() {
 	    var scopeElm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
 	    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	    this.options = Object.assign(this.optionsDef, options);
 	    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll, true);
+	    this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll, true);
 	  },
 	  execForScroll: function execForScroll() {
 	    var _this = this;

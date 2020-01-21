@@ -47,11 +47,13 @@ const EasyScrollEffect = {
 
     this.addClassByPosAll(document, this.options)
     this.handleEvent(scopeElm, window, 'scroll', this.execForScroll)
+    this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll)
   },
 
   destroy: function(scopeElm = null, options = {}) {
     this.options = Object.assign(this.optionsDef, options)
     this.handleEvent(scopeElm, window, 'scroll', this.execForScroll, true)
+    this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll, true)
   },
 
   execForScroll: function() {

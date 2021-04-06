@@ -222,7 +222,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
 <!-- For display sample -->
 <script>
-hljs.initHighlightingOnLoad();
+if (typeof hljs !== 'undefined') hljs.initHighlightingOnLoad();
 document.addEventListener('DOMContentLoaded', function() {
   var $code = Array.prototype.slice.call(document.querySelectorAll('.js-code'), 0);
   if ($code.length > 0) {

@@ -866,6 +866,7 @@
 	  scrollTimer: null,
 	  optionsDef: {
 	    selector: '.js-scroll-effect',
+	    initialDelay: 0,
 	    timeout: 1000 / 60,
 	    addedClass: 'is-active',
 	    startPosDef: 0,
@@ -905,11 +906,24 @@
 	      }
 	    }
 	  },
+	  handleLoadEvent: function handleLoadEvent(func) {
+	    var isRemove = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+	    var listener = {
+	      handleEvent: func,
+	      options: this.options
+	    };
+
+	    if (isRemove) {
+	      window.removeEventListener('load', listener);
+	    } else {
+	      window.addEventListener('load', listener);
+	    }
+	  },
 	  init: function init() {
 	    var scopeElm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
 	    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	    this.options = Object.assign(this.optionsDef, options);
-	    this.addClassByPosAll(scopeElm, this.options);
+	    this.handleLoadEvent(this.execInitial);
 	    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll);
 	    this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll);
 	  },
@@ -917,6 +931,7 @@
 	    var scopeElm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
 	    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	    this.options = Object.assign(this.optionsDef, options);
+	    this.handleLoadEvent(this.execInitial, true);
 	    this.handleEvent(scopeElm, window, 'scroll', this.execForScroll, true);
 	    this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll, true);
 	  },
@@ -929,19 +944,21 @@
 	      _this.scrollTimer = 0;
 	    }, this.options.timeout);
 	  },
+	  execInitial: function execInitial() {
+	    setTimeout(function () {
+	      EasyScrollEffect.addClassByPosAll();
+	    }, this.options.initialDelay);
+	  },
 	  addClassByPosAll: function addClassByPosAll() {
-	    var scopeElm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-	    var options = arguments.length > 1 ? arguments[1] : undefined;
-	    if (scopeElm == null) scopeElm = document;
-	    var els = scopeElm.querySelectorAll(options.selector);
+	    var els = document.querySelectorAll(this.options.selector);
 	    if (els == null || els.length == 0) return;
-	    if (options.isDebug) this.addDebugBlock();
+	    if (this.options.isDebug) EasyScrollEffect.addDebugBlock();
 
 	    for (var i = 0, n = els.length; i < n; i++) {
-	      this.addClassByPos(els[i], options);
+	      EasyScrollEffect.addClassByPos(els[i], this.options);
 
-	      if (options.isDebug) {
-	        this.addEachDebugInfo(i, els[i], options);
+	      if (this.options.isDebug) {
+	        EasyScrollEffect.addEachDebugInfo(i, els[i], this.options);
 	      }
 	    }
 	  },

@@ -5,6 +5,7 @@ const EasyScrollEffect = {
   scrollTimer: null,
   optionsDef: {
     selector: '.js-scroll-effect',
+    initialDelay: 0,
     timeout: 1000/60,
     addedClass: 'is-active',
     startPosDef: 0,
@@ -42,16 +43,28 @@ const EasyScrollEffect = {
     }
   },
 
+  handleLoadEvent: function(func, isRemove = false) {
+    const listener = {
+      handleEvent: func,
+      options: this.options,
+    }
+    if (isRemove) {
+      window.removeEventListener('load', listener)
+    } else {
+      window.addEventListener('load', listener)
+    }
+  },
+
   init: function(scopeElm = null, options = {}) {
     this.options = Object.assign(this.optionsDef, options)
-
-    this.addClassByPosAll(scopeElm, this.options)
+    this.handleLoadEvent(this.execInitial)
     this.handleEvent(scopeElm, window, 'scroll', this.execForScroll)
     this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll)
   },
 
   destroy: function(scopeElm = null, options = {}) {
     this.options = Object.assign(this.optionsDef, options)
+    this.handleLoadEvent(this.execInitial, true)
     this.handleEvent(scopeElm, window, 'scroll', this.execForScroll, true)
     this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll, true)
   },
@@ -64,18 +77,23 @@ const EasyScrollEffect = {
     }, this.options.timeout)
   },
 
-  addClassByPosAll: function(scopeElm = null, options) {
-    if (scopeElm == null) scopeElm = document
-    let els = scopeElm.querySelectorAll(options.selector)
+  execInitial: function() {
+    setTimeout(() => {
+      EasyScrollEffect.addClassByPosAll()
+    }, this.options.initialDelay)
+  },
+
+  addClassByPosAll: function() {
+    let els = document.querySelectorAll(this.options.selector)
     if (els == null || els.length == 0) return
 
-    if (options.isDebug) this.addDebugBlock()
+    if (this.options.isDebug) EasyScrollEffect.addDebugBlock()
 
     for (let i = 0, n = els.length; i < n; i++) {
-      this.addClassByPos(els[i], options)
+      EasyScrollEffect.addClassByPos(els[i], this.options)
 
-      if (options.isDebug) {
-        this.addEachDebugInfo(i, els[i], options)
+      if (this.options.isDebug) {
+        EasyScrollEffect.addEachDebugInfo(i, els[i], this.options)
       }
     }
   },

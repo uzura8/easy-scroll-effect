@@ -9,9 +9,14 @@ const EasyScrollEffect = {
     timeout: 1000/60,
     addedClass: 'is-active',
     startPosDef: 0,
-    isDebug: false,
+    //isDebug: false,
+    debugMode: null,// 'force' / 'limit' / null
   },
   debugInfo: {
+    target: {
+      domain: 'example.com',
+      query: 'se_debug',
+    },
     delayTimeToSetPos: 2000,
     baseElm: null,
     scrollInfoElm: null,
@@ -56,17 +61,35 @@ const EasyScrollEffect = {
   },
 
   init: function(scopeElm = null, options = {}) {
-    this.options = Object.assign(this.optionsDef, options)
+    this.initOptions(options)
     this.handleLoadEvent(this.execInitial)
     this.handleEvent(scopeElm, window, 'scroll', this.execForScroll)
     this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll)
   },
 
   destroy: function(scopeElm = null, options = {}) {
-    this.options = Object.assign(this.optionsDef, options)
+    this.initOptions(options)
     this.handleLoadEvent(this.execInitial, true)
     this.handleEvent(scopeElm, window, 'scroll', this.execForScroll, true)
     this.handleEvent(scopeElm, window, 'touchmove', this.execForScroll, true)
+  },
+
+  initOptions: function(options = {}) {
+    this.options = Object.assign(this.optionsDef, options)
+
+    if (this.options.isDebug) return
+    if (!this.options.debugMode) return
+
+    switch (this.options.debugMode) {
+      case 'force':
+        this.options.isDebug = true
+        break
+      case 'limit':
+        if (this.isDebugTargetEnv()) {
+          this.options.isDebug = true
+        }
+        break
+    }
   },
 
   execForScroll: function() {
@@ -120,6 +143,23 @@ const EasyScrollEffect = {
 
   getScrollY: function() {
     return window.scrollY || window.pageYOffset
+  },
+
+  isDebugTargetEnv: function() {
+    if (!('target' in this.debugInfo) || !this.debugInfo.target) return false
+    if (!('domain' in this.debugInfo.target) || !this.debugInfo.target.domain) return false
+    if (window.location.hostname != this.debugInfo.target.domain) return false
+    if (('query' in this.debugInfo.target) && this.debugInfo.target.query) {
+      const targetQuery = this.getUriParamValue(this.debugInfo.target.query)
+      if (targetQuery !== '1') return false
+    }
+    return true
+  },
+
+  getUriParamValue: function(key) {
+    const match = window.location.search.match(new RegExp(key + '=(.*?)(&|$)'));
+    if (match) return decodeURIComponent(match[1]);
+    return '';
   },
 
   // For debug
